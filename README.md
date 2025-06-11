@@ -1,58 +1,44 @@
 # Kubernetes
-Great! Here’s a **beginner-friendly guide to getting started with Kubernetes on Windows** using **Minikube**, a tool that lets you run Kubernetes locally.
+Here's a complete **step-by-step documentation** for installing **Kubernetes (Minikube + kubectl)** on **Ubuntu**.
 
 ---
 
-## ✅ Step-by-Step Guide: Set Up Kubernetes on Windows
-
-### 🔧 Prerequisites
-
-1. **Windows 10/11 (64-bit)** – preferably with **WSL2** enabled.
-2. **Install the following tools**:
-
-   * [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-   * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/)
-   * [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+## 🧾 Kubernetes Setup on Ubuntu (Minikube + kubectl + Docker)
 
 ---
 
-## 🪛 Step 1: Install Docker Desktop
+### ✅ Prerequisites
 
-1. Download Docker from [here](https://www.docker.com/products/docker-desktop/).
-2. Install and run it.
-3. Enable **WSL2 backend** during installation if prompted.
-4. Verify it's running: Right-click Docker icon in system tray → Settings → General → "Use the WSL 2 based engine" should be checked.
+1. **Ubuntu OS**
+2. **Internet Connection**
+3. **Terminal with `sudo` privileges**
 
 ---
 
-## 📦 Step 2: Install `kubectl`
+### 🧱 Step 1: Install Docker
 
-1. Open PowerShell as Administrator.
-2. Run:
-
-```powershell
-choco install kubernetes-cli
-```
-
-> If you don’t have Chocolatey, install it first from [https://chocolatey.org/install](https://chocolatey.org/install).
-
-3. Confirm installation:
+Docker is required for Minikube to run containers.
 
 ```bash
-kubectl version --client
+sudo apt update
+sudo apt install -y docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
 ```
+
+> ⚠️ You might need to restart your terminal or log out/in after adding yourself to the `docker` group.
 
 ---
 
-## 🚀 Step 3: Install Minikube
+### 📦 Step 2: Install Minikube
 
-1. Run this in PowerShell:
-
-```powershell
-choco install minikube
+```bash
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
 ```
 
-2. After install, verify:
+Verify:
 
 ```bash
 minikube version
@@ -60,59 +46,83 @@ minikube version
 
 ---
 
-## 🔄 Step 4: Start Your Local Kubernetes Cluster
+### 🔧 Step 3: Install kubectl (Kubernetes CLI)
 
-1. Start Minikube with Docker driver:
+```bash
+sudo snap install kubectl --classic
+```
+
+Verify:
+
+```bash
+kubectl version --client
+```
+
+---
+
+### 🚀 Step 4: Start Minikube
+
+Start your Minikube cluster using Docker as the driver:
 
 ```bash
 minikube start --driver=docker
 ```
 
-> If you see WSL2-related issues, try:
+---
+
+### 🔍 Step 5: Verify Cluster
+
+Check node status:
 
 ```bash
-minikube config set driver docker
+kubectl get nodes
 ```
 
-2. Check status:
+Expected output:
 
-```bash
-minikube status
+```
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   1m    v1.33.x
 ```
 
 ---
 
-## 🔍 Step 5: Test the Cluster
+### 🧪 Optional: Enable Dashboard
 
-Create a sample app:
-
-```bash
-kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
-kubectl expose deployment hello-minikube --type=NodePort --port=8080
-```
-
-Access it:
+To use the Kubernetes dashboard (web UI):
 
 ```bash
-minikube service hello-minikube
-```
-
-> This will open the app in your default browser.
-
----
-
-## 🧼 Optional: Stop or Delete
-
-```bash
-minikube stop           # Stop the cluster
-minikube delete         # Delete the cluster
+minikube dashboard
 ```
 
 ---
 
-## 📚 What's Next?
+## ✅ Done!
 
-* Learn YAML configuration files (`deployment.yaml`, `service.yaml`)
+You now have:
+
+* A local Kubernetes cluster (`minikube`)
+* Kubernetes CLI (`kubectl`)
+* Docker container runtime
+
+---
+
+### 📁 Suggested Directory Structure for Projects
+
+```
+my-microservice-app/
+├── Dockerfile
+├── deployment/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── autoscaler.yaml
+├── src/
+├── pom.xml
+```
+
+---
+
+
 * Try `kubectl apply -f` for deploying via YAML
 * Explore Helm charts
 * Use `minikube dashboard` for a visual interface
