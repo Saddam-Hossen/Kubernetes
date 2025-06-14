@@ -1,24 +1,25 @@
 
-```markdown
+````markdown
 # 🐳 Spring Boot Multi-Container Pod (Kubernetes)
 
-This repository demonstrates how to run **two Spring Boot applications** inside a **single Kubernetes pod** using the **multi-container pod pattern**. One application is the main service, while the other acts as a **sidecar container for logging**.
+This repository demonstrates how to run **two Spring Boot applications** inside a **single Kubernetes pod** using the **multi-container pod pattern**.  
+One application is the **main service**, and the other acts as a **sidecar container for logging**.
 
 ---
 
 ## 📚 Use Case
 
-Running multiple containers in one pod can be useful when:
-- You want to separate concerns (e.g., business logic vs. logging or monitoring).
-- You need fast internal communication between tightly coupled components.
-- You prefer simplifying deployment and resource management.
+Multi-container pods are useful when you need:
+
+- 🧩 **Separation of Concerns**: Business logic vs. logging/monitoring.
+- ⚡ **Fast Internal Communication**: Via `localhost` between tightly coupled services.
+- 📦 **Simplified Deployment**: Shared lifecycle and resource management.
 
 ---
 
 ## 🧱 Project Structure
 
-```
-
+```plaintext
 springboot-multi-container-pod/
 ├── main-app/                 # Business logic Spring Boot application
 │   ├── Dockerfile
@@ -29,52 +30,56 @@ springboot-multi-container-pod/
 ├── k8s/
 │   └── multi-container-pod.yaml
 └── README.md
-
 ````
 
 ---
 
 ## 🛠️ Prerequisites
 
-- Docker
-- Kubernetes cluster (e.g., Minikube, Docker Desktop, GKE)
-- `kubectl` installed and configured
-- Java 17+ and Maven (for building apps)
+Before you begin, ensure the following tools are installed:
+
+* 🐳 Docker
+* ☸️ Kubernetes (e.g., Minikube, Docker Desktop, GKE)
+* 🧪 `kubectl` CLI
+* ☕ Java 17+
+* 🧰 Maven
 
 ---
 
 ## 🚧 Build Docker Images
 
-Build both Spring Boot apps as Docker images:
+Build Docker images for both applications:
 
 ```bash
+# Build main app
 cd main-app
 docker build -t main-app:latest .
 
+# Build logger app
 cd ../logger-app
 docker build -t logger-app:latest .
-````
+```
 
-Push to your container registry if using a cloud Kubernetes cluster.
+> ✅ If you're deploying to a remote cluster, push images to a registry (e.g., Docker Hub, ECR, GCR).
 
 ---
 
-## ☸️ Kubernetes Deployment
+## ☸️ Deploy to Kubernetes
 
-Apply the deployment manifest:
+Apply the Kubernetes deployment manifest:
 
 ```bash
 kubectl apply -f k8s/multi-container-pod.yaml
 ```
 
-Check pod status:
+Verify the pod status:
 
 ```bash
 kubectl get pods
 kubectl describe pod springboot-multi-container
 ```
 
-View logs from each container:
+Check logs of both containers:
 
 ```bash
 kubectl logs springboot-multi-container -c main-app
@@ -106,21 +111,22 @@ spec:
 
 ## 🔁 Inter-Container Communication
 
-Since both containers share the same **network namespace**, they can communicate over `localhost`:
+Since both containers share the **same network namespace**, they communicate via `localhost`.
+
+### Example (from Main App to Logger App):
 
 ```java
-// From main-app to logger-app
 RestTemplate rest = new RestTemplate();
 rest.postForEntity("http://localhost:8081/log", "Log message", Void.class);
 ```
 
 ---
 
-## ✅ Benefits of Multi-Container Pod Pattern
+## ✅ Benefits of Multi-Container Pods
 
-* 🧩 **Modular Design:** Separate services within the same pod.
-* 🔒 **Secure Communication:** Uses `localhost` internally.
-* 🚀 **Performance:** No need for service discovery or networking overhead.
-* 🛠️ **Sidecar Use Cases:** Logging, monitoring, proxying, caching, etc.
+* 🧩 **Modular Design**: Keep components decoupled but co-located.
+* 🔒 **Secure by Design**: No need to expose internal services.
+* 🚀 **Improved Performance**: Lower latency through localhost.
+* 🔧 **Use Cases**: Logging, metrics, proxies, init containers, etc.
 
 ---
