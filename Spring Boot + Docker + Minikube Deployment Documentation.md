@@ -1,189 +1,139 @@
-Here is the **documentation** based on your successful deployment of the Spring Boot application (`DeviceManagement`) on **Minikube** using **Docker** and **Kubernetes**.
+
+# Device Management Deployment with Docker & Minikube
+
+This project demonstrates how to containerize a Spring Boot application and deploy it on a local Kubernetes cluster using **Docker**, **Minikube**, and **kubectl**.
 
 ---
 
-## 🚀 Spring Boot + Docker + Minikube Deployment Documentation
+## 📦 Prerequisites
 
-### 🧰 Prerequisites
-
-* Ubuntu 24.04
-* Docker installed and running
-* Minikube installed (`v1.36.0`)
-* Kubernetes CLI (`kubectl`)
-* Java project with a valid `pom.xml` and Spring Boot application (`DeviceManagement`)
+* [Docker](https://www.docker.com/)
+* [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/)
+* Java 21 (Temurin recommended)
+* Maven or Gradle to build the Spring Boot project
 
 ---
 
-## 📦 Step 1: Start Minikube with Docker Driver
+## 🚀 Getting Started
+
+### Step 1: Start Minikube
 
 ```bash
 minikube start
 ```
 
-Verify `kubectl` is configured to use the Minikube cluster:
-
-```bash
-kubectl config current-context
-# Output: minikube
-```
-
 ---
 
-## 🔁 Step 2: Use Minikube’s Docker Environment
+### Step 2: Use Minikube’s Docker Environment
+
+This sets your terminal to use Minikube’s Docker daemon:
 
 ```bash
 eval $(minikube docker-env)
 ```
 
-This allows building Docker images *inside* Minikube’s Docker daemon.
-
 ---
 
-## 🏗️ Step 3: Build Docker Image
-
-Navigate to your project directory:
+### Step 3: Navigate to Your Project Directory
 
 ```bash
 cd /mnt/d/Thymeleaf/DeviceManagement/DeviceManagement
 ```
 
-Ensure your `Dockerfile` is present and build the image:
+---
+
+### Step 4: Build the JAR File
 
 ```bash
-docker build -t devicemanagement-app .
+mvn clean package
 ```
 
-✅ After successful build, the image `devicemanagement-app` will be available to Kubernetes running in Minikube.
+This creates the JAR file under the `target/` directory.
 
 ---
 
-## 📄 Step 4: Deployment YAML (`deployment.yaml`)
+### Step 5: Create Docker Image
 
-Ensure your `deployment.yaml` looks something like:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: devicemanagement-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: devicemanagement
-  template:
-    metadata:
-      labels:
-        app: devicemanagement
-    spec:
-      containers:
-        - name: devicemanagement
-          image: devicemanagement-app
-          ports:
-            - containerPort: 8080
+```bash
+docker buildx build -t dvm-app .
 ```
 
-Apply it:
+Check the image:
+
+```bash
+docker images
+```
+
+---
+
+### Step 6: Export and Load Docker Image into Minikube
+
+If you are **not using `eval $(minikube docker-env)`**, you must load the image manually:
+
+```bash
+docker save -o dvm-app.tar dvm-app
+minikube image load dvm-app.tar
+```
+
+---
+
+### Step 7: Deploy to Minikube
 
 ```bash
 kubectl apply -f deployment/deployment.yaml
 ```
 
-Check pod status:
+Check the deployment:
 
 ```bash
-kubectl get pods
-```
-
-✅ Pod should show `STATUS: Running`.
-
----
-
-## 🌐 Step 5: Service YAML (`service.yaml`)
-
-Ensure your service configuration looks like:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: devicemanagement-service
-spec:
-  type: NodePort
-  selector:
-    app: devicemanagement
-  ports:
-    - port: 8080
-      targetPort: 8080
-      nodePort: 30080
-```
-
-Apply it:
-
-```bash
-kubectl apply -f deployment/service.yaml
+kubectl get all
 ```
 
 ---
 
-## 🌍 Step 6: Access the App in Browser
+### Step 8: Access the Application
 
 ```bash
-minikube service devicemanagement-service
+minikube service <your-service-name>
 ```
 
-If successful, you will get:
-
-```
-| default   | devicemanagement-service |        8080 | http://192.168.49.2:30080 |
-```
-
-Visit: `http://192.168.49.2:30080/login/login` or the endpoint exposed by your app.
-
----
-
-## 🧪 Troubleshooting
-
-### ❌ `ImagePullBackOff`
-
-This usually happens when Kubernetes cannot find the image.
-
-✅ You fixed this by ensuring `minikube docker-env` was used **before** building the image.
-
-You can delete old pods to restart:
-
-```bash
-kubectl delete pod <pod-name>
-```
+Replace `<your-service-name>` with the name defined in your `deployment.yaml`.
 
 ---
 
 ## 📁 Project Structure
 
-Your project should resemble:
-
 ```
 DeviceManagement/
-├── Dockerfile
-├── pom.xml
-├── src/
-├── target/
-│   └── DeviceManagement-1.0.jar
 ├── deployment/
-│   ├── deployment.yaml
-│   └── service.yaml
+│   └── deployment.yaml         # Kubernetes deployment config
+├── Dockerfile                  # Docker build instructions
+├── target/
+│   └── DeviceManagement-1.0.jar  # Built JAR file
+└── README.md
 ```
 
 ---
 
-## ✅ Final Check
+## 🛠 Useful Commands
 
-```bash
-kubectl get pods
-kubectl get svc
-minikube service devicemanagement-service
-```
-
-If all is running well, you can now access your Spring Boot application from the exposed Minikube URL.
+| Command                                       | Description                  |
+| --------------------------------------------- | ---------------------------- |
+| `minikube start`                              | Start Minikube cluster       |
+| `eval $(minikube docker-env)`                 | Use Minikube’s Docker daemon |
+| `docker buildx build -t dvm-app .`            | Build Docker image           |
+| `docker save -o dvm-app.tar dvm-app`          | Save Docker image            |
+| `minikube image load dvm-app.tar`             | Load image into Minikube     |
+| `kubectl apply -f deployment/deployment.yaml` | Deploy app                   |
+| `kubectl get all`                             | List all resources           |
+| `minikube service <service-name>`             | Open service in browser      |
 
 ---
+
+## ✅ License
+
+This project is open-source and available under the [MIT License](LICENSE).
+
+---
+
