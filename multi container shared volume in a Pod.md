@@ -1,4 +1,6 @@
 #####Shared Volume####
+
+
 Yes, absolutely! In Kubernetes, you can share a **volume** between containers in the **same pod**, allowing one container (e.g., your main Spring Boot app) to **write logs** to a file, while the **sidecar container** (your logging app) can **read and process** those logs in real-time.
 
 ---
