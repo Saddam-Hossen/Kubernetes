@@ -131,9 +131,14 @@ DeviceManagement/
 
 ---
 
-## ✅ License
+## 📁 Short cut project deployment
 
-This project is open-source and available under the [MIT License](LICENSE).
+```
+cd /mnt/d/Thymeleaf/DeviceManagement/DeviceManagement
+docker buildx build -t dvm-app .
+docker save -o dvm-app.tar dvm-app
+minikube image load dvm-app.tar
+kubectl apply -f deployment/deployment.yaml
+```
 
----
 
