@@ -120,7 +120,7 @@ metadata:
   name: devicemanagement-deployment
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: devicemanagement
@@ -131,7 +131,7 @@ spec:
     spec:
       initContainers:
         - name: init-logs
-          image: busybox
+          image: busybox:latest
           command: ["sh", "-c", "mkdir -p /app/logs && chmod -R 777 /app/logs"]
           volumeMounts:
             - name: app-log-volume
@@ -152,14 +152,34 @@ spec:
             httpGet:
               path: /actuator/health
               port: 3079
-            initialDelaySeconds: 90
+            initialDelaySeconds: 120
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 3079
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 5
+          env:
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb+srv://root:root@cluster0.lhvo556.mongodb.net/Abc?retryWrites=true&w=majority"
+            - name: SPRING_REDIS_HOST
+              value: "redis-service.default.svc.cluster.local"
+            - name: SPRING_REDIS_PORT
+              value: "6379"
+            - name: SPRING_REDIS_PASSWORD
+              value: "@#12345678"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
         - name: log-reader
           image: log-reader-app:latest
           imagePullPolicy: Never
@@ -169,8 +189,20 @@ spec:
           livenessProbe:
             exec:
               command: ["sh", "-c", "test -d /app/logs"]
-            initialDelaySeconds: 90
+            initialDelaySeconds: 120
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          env:
+            - name: LOG_READER_PATH
+              value: "/app/logs/app.log"
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
 ---
 apiVersion: v1
 kind: Service
