@@ -135,6 +135,7 @@ DeviceManagement/
 
 ```
 cd /mnt/d/Thymeleaf/DeviceManagement/DeviceManagement
+./mvnw clean package
 docker buildx build -t dvm-app .
 docker save -o dvm-app.tar dvm-app
 minikube image load dvm-app.tar
